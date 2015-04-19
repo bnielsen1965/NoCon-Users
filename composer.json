@@ -1,0 +1,22 @@
+{
+    "name": "nocon/nocon-users",
+    "type": "framework",
+    "description": "User class used to implement user authentication and identification in the NoCon framework.",
+    "keywords":["user", "nocon", "authentication", "identification"],
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "Bryan Nielsen",
+            "email": "bnielsen1965@gmail.com"
+        }
+    ],
+    "require": {
+      "php": ">=5.3",
+      "nocon/nocon": ">=1.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "NoCon\\": "vendor/NoCon"
+        }
+    }
+}

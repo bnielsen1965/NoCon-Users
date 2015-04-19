@@ -1,0 +1,1 @@
+INSERT INTO nocon_user (username, password, flags) VALUES('admin', '', 3);
