@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-            "NoCon\\": "vendor/NoCon"
+            "NoCon\\": "src/NoCon"
         }
     }
 }
