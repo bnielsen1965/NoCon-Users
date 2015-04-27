@@ -35,3 +35,16 @@ a temporary location. Copy the NoCon/ directory structure
 to your application's class file location where your
 autoloader can locate the class.
 
+
+---------------------------------
+
+
+# DEVELOPING
+
+The NoCon-Users packages utilizes PHP PDO for data storage.
+A set of sample files are provided to assist in setting up 
+a demo in a NoCon framework. This includes sample database
+configurations, SQL statements to create the required tables,
+and a view with a login form and administration forms to
+use with a sample database.
+
