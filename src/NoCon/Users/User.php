@@ -29,7 +29,7 @@ namespace NoCon\Users;
  * account creation, status, etc.
  * 
  * Requires a PDO supported data source with a users table:
- * users
+ * nocon_user
  * -------------
  * username varchar(255), primary key
  * password varchar(255)
