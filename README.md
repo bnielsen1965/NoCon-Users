@@ -35,6 +35,9 @@ a temporary location. Copy the NoCon/ directory structure
 to your application's class file location where your
 autoloader can locate the class.
 
+I.E. To install this package manually in the NoCon framework
+you download and extract the zip file then copy the NoCon
+directory into the vendor/ path in your NoCon installation.
 
 ---------------------------------
 
@@ -47,4 +50,5 @@ a demo in a NoCon framework. This includes sample database
 configurations, SQL statements to create the required tables,
 and a view with a login form and administration forms to
 use with a sample database.
+
 
