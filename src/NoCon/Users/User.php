@@ -1,26 +1,28 @@
 <?php
+
 /*
-* Copyright (C) 2015 Bryan Nielsen - All Rights Reserved
-*
-* Author: Bryan Nielsen <bnielsen1965@gmail.com>
-*
-*
-* This file is part of the NoCon PHP application framework.
-* NoCon is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* NoCon is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* 
-* You should have received a copy of the GNU General Public License
-* along with this application.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright (C) 2015 Bryan Nielsen - All Rights Reserved
+ *
+ * Author: Bryan Nielsen <bnielsen1965@gmail.com>
+ *
+ *
+ * This file is part of the NoCon PHP application framework.
+ * NoCon is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * NoCon is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this application.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace NoCon\Users;
+
 
 /**
  * User class provides basic user functions.
@@ -45,24 +47,68 @@ class User {
     /**
      * Class constants
      */
+
+    /**
+     * @var integer Flag bit that defines a user as an administrator.
+     */
     const ADMIN_FLAG = 1;
+
+    /**
+     * @var integer Flag bit that defines an account as active.
+     */
     const ACTIVE_FLAG = 2;
+
+    /**
+     * @var integer All flags combined.
+     */
     const ALL_FLAGS = 3;
-    
+
+    /**
+     * @var string The name of the database table where user information is saved.
+     */
     const USER_TABLE_NAME = 'nocon_user';
-    
-    
+
     /**
      * Private properties
      */
+
+    /**
+     *
+     * @var \PDO An instance of PHP PDO object.
+     */
     protected $pdo;
+
+    /**
+     *
+     * @var string This user's username.
+     */
     protected $username;
+
+    /**
+     *
+     * @var string This user's password hash.
+     */
     protected $passwordHash;
+
+    /**
+     *
+     * @var string A timestamp when the account was created.
+     */
     protected $created;
+
+    /**
+     *
+     * @var s A timestamp when the user last signed in.
+     */
     protected $lastLogin;
+
+    /**
+     *
+     * @var integer This user's flag settings.
+     */
     protected $flags;
 
-    
+
     /**
      * Construct a User instance connected to the PDO source specified by the
      * passed configuration parameters.
@@ -79,19 +125,15 @@ class User {
      */
     public function __construct($config, $userRow = null) {
         $this->errors = array();
-        
+
         try {
             $this->pdo = new \PDO(
-                $config['dsn'],
-                $config['username'],
-                $config['password'],
-                $config['options']
+                    $config['dsn'], $config['username'], $config['password'], $config['options']
             );
-        }
-        catch (\PDOException $ex) {
+        } catch (\PDOException $ex) {
             throw new \Exception($ex->getMessage(), $ex->getCode());
         }
-        
+
         if ( $userRow ) {
             $this->username = $userRow['username'];
             $this->passwordHash = $userRow['password'];
@@ -100,8 +142,8 @@ class User {
             $this->flags = $userRow['flags'];
         }
     }
-    
-    
+
+
     /**
      * Check if this user is an admin.
      * 
@@ -110,8 +152,8 @@ class User {
     public function isAdmin() {
         return $this->isFlagSet(User::ADMIN_FLAG);
     }
-    
-    
+
+
     /**
      * Check if this user is activated.
      * 
@@ -120,8 +162,8 @@ class User {
     public function isActive() {
         return $this->isFlagSet(User::ACTIVE_FLAG);
     }
-    
-    
+
+
     /**
      * Test if a flag is set or a combination of flags.
      * 
@@ -131,8 +173,8 @@ class User {
     public function isFlagSet($flag) {
         return ($this->flags & $flag) ? true : false;
     }
-    
-    
+
+
     /**
      * Set the specified flags for thsi user.
      * 
@@ -141,8 +183,8 @@ class User {
     public function setFlags($flags) {
         $this->flags |= ($flags & User::ALL_FLAGS);
     }
-    
-    
+
+
     /**
      * Clear the specified flags for this user.
      * 
@@ -151,8 +193,8 @@ class User {
     public function clearFlags($flags) {
         $this->flags ^= ($flags & $this->flags);
     }
-    
-    
+
+
     /**
      * Create a new user in the database.
      * 
@@ -164,18 +206,18 @@ class User {
         if ( !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         // create user
         $st = $this->pdo->prepare(
                 'INSERT INTO ' . self::USER_TABLE_NAME . ' (username, password, created, flags) VALUES (:username, :password, :created, 0)'
         );
-        
+
         if ( false === $st->execute(array(':username' => $username, ':password' => self::hashPassword($password), ':created' => date('Y-m-d H:i:s'))) ) {
             $this->throwStatementException($st);
         }
     }
-    
-    
+
+
     /**
      * Delete a user from the database.
      * 
@@ -187,18 +229,18 @@ class User {
         if ( !$this->isAdmin() || $username === $this->username ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         // create user
         $st = $this->pdo->prepare(
                 'DELETE FROM ' . self::USER_TABLE_NAME . ' WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(':username' => $username)) ) {
             $this->throwStatementException($st);
         }
     }
-    
-    
+
+
     /**
      * Search for the existence of a username in the database.
      * 
@@ -209,21 +251,21 @@ class User {
         $st = $this->pdo->prepare(
                 'SELECT * FROM ' . self::USER_TABLE_NAME . ' WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(':username' => $username)) ) {
             $this->throwStatementException($st);
         }
-        
+
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        
+
         if ( count($rows) === 0 ) {
             return false;
         }
-        
+
         return true;
     }
-    
-    
+
+
     /**
      * Get a user row from the database.
      * 
@@ -236,25 +278,25 @@ class User {
         if ( !is_null($username) && !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         $st = $this->pdo->prepare(
                 'SELECT * FROM ' . self::USER_TABLE_NAME . ' WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(':username' => (is_null($username) ? $this->username : $username))) ) {
             $this->throwStatementException($st);
         }
-        
+
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        
+
         if ( count($rows) === 0 ) {
             return false;
         }
-        
+
         return $rows[0];
     }
-    
-    
+
+
     /**
      * Get all user rows from the database.
      * 
@@ -266,21 +308,21 @@ class User {
         if ( !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         $st = $this->pdo->prepare(
                 'SELECT * FROM ' . self::USER_TABLE_NAME
         );
-        
+
         if ( false === $st->execute(array()) ) {
             $this->throwStatementException($st);
         }
-        
+
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        
+
         return $rows;
     }
-    
-    
+
+
     /**
      * Attempts to authenticate the specified user. On success the user's details
      * are loaded into this instance.
@@ -293,33 +335,33 @@ class User {
         $st = $this->pdo->prepare(
                 'SELECT * FROM ' . self::USER_TABLE_NAME . ' WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(':username' => $username)) ) {
             $this->throwStatementException($st);
         }
-        
+
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        
+
         if ( count($rows) !== 1 ) {
             return false;
         }
-        
+
         if ( $rows[0]['password'] !== self::hashPassword($password, $rows[0]['password']) || !(self::ACTIVE_FLAG & $rows[0]['flags']) ) {
             return false;
         }
-        
+
         $lastLogin = self::updateLastLogin($username);
-        
+
         $this->username = $username;
         $this->passwordHash = $rows[0]['password'];
         $this->created = $rows[0]['created'];
         $this->lastLogin = $lastLogin;
         $this->flags = $rows[0]['flags'];
-        
+
         return true;
     }
-    
-    
+
+
     /**
      * Update the lastLogin value for the specified username.
      * 
@@ -330,17 +372,17 @@ class User {
         $st = $this->pdo->prepare(
                 'UPDATE ' . self::USER_TABLE_NAME . ' SET lastLogin=:lastLogin WHERE username=:username'
         );
-        
+
         $lastLogin = date('Y-m-d H:i:s');
-        
+
         if ( false === $st->execute(array(':lastLogin' => $lastLogin, ':username' => $username)) ) {
             $this->throwStatementException($st);
         }
-        
+
         return $lastLogin;
     }
-    
-    
+
+
     /**
      * Update a user's password.
      * 
@@ -353,23 +395,23 @@ class User {
         if ( !is_null($username) && !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         $passwordHash = self::hashPassword($password);
-        
+
         $st = $this->pdo->prepare(
                 'UPDATE ' . self::USER_TABLE_NAME . ' SET password=:password WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(':username' => (is_null($username) ? $this->username : $username), ':password' => $passwordHash)) ) {
             $this->throwStatementException($st);
         }
-        
+
         if ( is_null($username) ) {
             $this->passwordHash = $passwordHash;
         }
     }
-    
-    
+
+
     /**
      * Update the permission flags on this user or other user in the database.
      * 
@@ -382,25 +424,25 @@ class User {
         if ( !is_null($username) && !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         $st = $this->pdo->prepare(
                 'UPDATE ' . self::USER_TABLE_NAME . ' SET flags=:flags WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(
-            ':username' => (is_null($username) ? $this->username : $username), 
-            ':flags' => (is_null($flags) ? $this->flags : $flags)
-        )) ) {
+                    ':username' => (is_null($username) ? $this->username : $username),
+                    ':flags' => (is_null($flags) ? $this->flags : $flags)
+                )) ) {
             $this->throwStatementException($st);
         }
-        
+
         // determine if combined update and set flags on this user
         if ( !is_null($flags) && is_null($username) ) {
             $this->flags = $flags;
         }
     }
-    
-    
+
+
     /**
      * Update the username on this user or other user in the database.
      * 
@@ -413,25 +455,25 @@ class User {
         if ( !is_null($username) && !$this->isAdmin() ) {
             throw new \Exception('Permission denied.');
         }
-        
+
         $st = $this->pdo->prepare(
                 'UPDATE ' . self::USER_TABLE_NAME . ' SET username=:newUsername WHERE username=:username'
         );
-        
+
         if ( false === $st->execute(array(
-            ':username' => (is_null($username) ? $this->username : $username), 
-            ':newUsername' => $newUsername
-        )) ) {
+                    ':username' => (is_null($username) ? $this->username : $username),
+                    ':newUsername' => $newUsername
+                )) ) {
             $this->throwStatementException($st);
         }
-        
+
         // determine if this user's name changed
         if ( is_null($username) ) {
             $this->username = $newUsername;
         }
     }
-    
-    
+
+
     /**
      * Throws an exception based on the error info from the passed PDOStatement.
      * 
@@ -445,85 +487,97 @@ class User {
 
         throw new \Exception($error, $code);
     }
-    
-    
-	/**
-	 * Hash the provided password string.
+
+
+    /**
+     * Hash the provided password string.
      * 
-	 * @param string $password The plain text user password.
-	 * @param string $salt Optional salt to use with crypt. The salt must be provided
-	 * when performing a password hash check to make sure the hash values come out the
-	 * same. If no salt is provided then the best salt for this server will be generated.
-	 * @return string The hashed password.
-	 */
-	public static function hashPassword($password, $salt = NULL) {
-		// if password empty then return empty
-		if( empty($password) ) {
+     * @param string $password The plain text user password.
+     * @param string $salt Optional salt to use with crypt. The salt must be provided
+     * when performing a password hash check to make sure the hash values come out the
+     * same. If no salt is provided then the best salt for this server will be generated.
+     * @return string The hashed password.
+     */
+    public static function hashPassword($password, $salt = NULL) {
+        // if password empty then return empty
+        if ( empty($password) ) {
             return '';
         }
 
-		return crypt($password, (is_null($salt) ? self::bestSalt() : $salt));
-	}
-	
-	
-	/**
-	 * Determine the best salt to use for the crypt function on this server.
+        return crypt($password, (is_null($salt) ? self::bestSalt() : $salt));
+    }
+
+
+    /**
+     * Determine the best salt to use for the crypt function on this server.
      * 
-	 * @return string The salt to be used with crypt.
-	 */
-	public static function bestSalt() {
-		if( defined('CRYPT_SHA512') && CRYPT_SHA512 ) {
+     * @return string The salt to be used with crypt.
+     */
+    public static function bestSalt() {
+        if ( defined('CRYPT_SHA512') && CRYPT_SHA512 ) {
             return '$6$' . self::makePhrase(16) . '$';
         }
-        
-		if( defined('CRYPT_SHA256') && CRYPT_SHA256 ) {
+
+        if ( defined('CRYPT_SHA256') && CRYPT_SHA256 ) {
             return '$5$' . self::makePhrase(16) . '$';
         }
-        
-		if( defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH ) {
+
+        if ( defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH ) {
             return '$2a$07$' . base64_encode(self::makePhrase(22)) . '$';
         }
-        
-		if( defined('CRYPT_MD5') && CRYPT_MD5 ) {
+
+        if ( defined('CRYPT_MD5') && CRYPT_MD5 ) {
             return '$1$' . self::makePhrase(12) . '$';
         }
-        
-		if( defined('CRYPT_EXT_DES') && CRYPT_EXT_DES ) {
+
+        if ( defined('CRYPT_EXT_DES') && CRYPT_EXT_DES ) {
             return '_' . self::makePhrase(8);
         }
-        
-		if( defined('CRYPT_STD_DES') && CRYPT_STD_DES ) {
+
+        if ( defined('CRYPT_STD_DES') && CRYPT_STD_DES ) {
             return self::makePhrase(2);
         }
-        
-		return '';
-	}
 
-    
-	/**
-	 * Creates a random passphrase.
+        return '';
+    }
+
+
+    /**
+     * Creates a random passphrase.
      * 
-	 * @param integer $len The length of the generated pass phrase.
-	 * @param boolean $alphanumeric Determines if the generated pass phrase includes only alphanumeric characters.
-	 * @return string The generated pass phrase.
-	 */
-	public static function makePhrase($len = 64, $alphanumeric = FALSE) {
-		// determine the character set to use
-		if ($alphanumeric === TRUE) {
-			$charlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-		}
-		else
-        {
-			$charlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#&*(),.{}[];:";
+     * @param integer $len The length of the generated pass phrase.
+     * @param boolean $alphanumeric Determines if the generated pass phrase includes only alphanumeric characters.
+     * @return string The generated pass phrase.
+     */
+    public static function makePhrase($len = 64, $alphanumeric = FALSE) {
+        // determine the character set to use
+        if ( $alphanumeric === TRUE ) {
+            $charlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        } else {
+            $charlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#&*(),.{}[];:";
         }
-        
-		$phrase = "";
-		
-		// loop to create random phrase
-		do {
-			$phrase .= substr($charlist, mt_rand(0, strlen($charlist) - 1), 1);
-		} while (--$len > 0);
 
-		return $phrase;
-	}
+        $phrase = "";
+
+        // loop to create random phrase
+        do {
+            $phrase .= substr($charlist, mt_rand(0, strlen($charlist) - 1), 1);
+        } while ( --$len > 0 );
+
+        return $phrase;
+    }
+
+
+    /**
+     * Generate a UUID value.
+     * 
+     * @return string The UUID value.
+     */
+    public static function uuidV4() {
+        $data = openssl_random_pseudo_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
 }
