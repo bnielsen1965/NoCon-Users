@@ -42,11 +42,11 @@ namespace NoCon\Users;
  * 
  */
 class User {
-	/**
-	 * Class constants
-	 */
-	const ADMIN_FLAG = 1;
-	const ACTIVE_FLAG = 2;
+    /**
+     * Class constants
+     */
+    const ADMIN_FLAG = 1;
+    const ACTIVE_FLAG = 2;
     const ALL_FLAGS = 3;
     
     const USER_TABLE_NAME = 'nocon_user';

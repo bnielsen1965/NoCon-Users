@@ -1,6 +1,6 @@
 {
     "name": "nocon/nocon-users",
-    "type": "framework",
+    "type": "library",
     "description": "User class used to implement user authentication and identification in the NoCon framework.",
     "keywords":["user", "nocon", "authentication", "identification"],
     "license": "GPL-3.0+",
