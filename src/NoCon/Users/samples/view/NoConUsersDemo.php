@@ -4,61 +4,69 @@
  * 
  * A database with tables must be created and a database configuration file 
  * provided with the connection details before the sample will function.
+ * 
+ * The sample config directory contains and example database configuration and
+ * the sql directory contains sample queries to create the tables and populate
+ * an admin user.
+ * 
  */
 
 namespace NoCon;
 
 $userDatabaseConfig = Framework\Config::get('database');
 
-
-if ( isset($_POST['logout']) ) {
-    $_SESSION['NoConUser'] = null;
-    unset($_SESSION['NoConUser']);
+if ( empty($userDatabaseConfig) ) {
+    $error = 'Failed to read database configuration.';
 }
-
-
-if ( isset($_POST['login']) ) {
-    $user = new Users\User($userDatabaseConfig);
-    if ( $user->authenticate($_POST['username'], $_POST['password']) ) {
-        $_SESSION['NoConUser'] = $user->getUser();
+else {
+    if ( isset($_POST['logout']) ) {
+        $_SESSION['NoConUser'] = null;
+        unset($_SESSION['NoConUser']);
     }
-    else {
-        $error = 'Login failed';
+
+
+    if ( isset($_POST['login']) ) {
+        $user = new Users\User($userDatabaseConfig);
+        if ( $user->authenticate($_POST['username'], $_POST['password']) ) {
+            $_SESSION['NoConUser'] = $user->getUser();
+        }
+        else {
+            $error = 'Login failed';
+        }
+    }
+
+
+    if ( isset($_SESSION['NoConUser']) ) {
+        $user = new Users\User($userDatabaseConfig, $_SESSION['NoConUser']);
+    }
+
+
+    if ( isset($_POST['create']) ) {
+        $user->create($_POST['username'], $_POST['password']);
+        $user->updateFlags(Users\User::ACTIVE_FLAG, $_POST['username']);
+    }
+
+
+    if ( isset($_POST['delete']) ) {
+        $user->delete($_POST['username']);
+    }
+
+
+    if ( isset($_POST['activate']) ) {
+        $userRow = $user->getUser($_POST['username']);
+        if ( $userRow ) {
+            $user->updateFlags($userRow['flags'] | Users\User::ACTIVE_FLAG, $_POST['username']);
+        }
+    }
+
+
+    if ( isset($_POST['deactivate']) ) {
+        $userRow = $user->getUser($_POST['username']);
+        if ( $userRow ) {
+            $user->updateFlags($userRow['flags'] ^ ($userRow['flags'] & Users\User::ACTIVE_FLAG), $_POST['username']);
+        }
     }
 }
-
-
-if ( isset($_SESSION['NoConUser']) ) {
-    $user = new Users\User($userDatabaseConfig, $_SESSION['NoConUser']);
-}
-
-
-if ( isset($_POST['create']) ) {
-    $user->create($_POST['username'], $_POST['password']);
-    $user->updateFlags(Users\User::ACTIVE_FLAG, $_POST['username']);
-}
-
-
-if ( isset($_POST['delete']) ) {
-    $user->delete($_POST['username']);
-}
-
-
-if ( isset($_POST['activate']) ) {
-    $userRow = $user->getUser($_POST['username']);
-    if ( $userRow ) {
-        $user->updateFlags($userRow['flags'] | Users\User::ACTIVE_FLAG, $_POST['username']);
-    }
-}
-
-
-if ( isset($_POST['deactivate']) ) {
-    $userRow = $user->getUser($_POST['username']);
-    if ( $userRow ) {
-        $user->updateFlags($userRow['flags'] ^ ($userRow['flags'] & Users\User::ACTIVE_FLAG), $_POST['username']);
-    }
-}
-
 
 ?>
 
@@ -137,7 +145,18 @@ else {
 <h2>User Changes</h2>
 <form method="post">
     Username:<br>
-    <input type="text" name="username"><br>
+    <select name="username">
+        <?php
+        $users = $user->getUsers();
+        foreach ( $users as $userRow ) {
+            if ( $userRow['username'] === $user->getUsername() ) {
+                continue;
+            }
+            
+            echo '<option value="' . $userRow['username'] . '">' . $userRow['username'] . '</option>';
+        }
+        ?>
+    </select><br>
     <button type="submit" name="delete">Delete</button>
     <button type="submit" name="activate">Activate</button>
     <button type="submit" name="deactivate">Deactivate</button>

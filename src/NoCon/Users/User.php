@@ -321,6 +321,31 @@ class User {
 
         return $rows;
     }
+    
+    
+    public function getUsername() {
+        return $this->username;
+    }
+    
+    
+    public function getPasswordHash() {
+        return $this->passwordHash;
+    }
+    
+    
+    public function getCreated() {
+        return $this->created;
+    }
+    
+    
+    public function getLastLogin() {
+        return $this->lastLogin;
+    }
+    
+    
+    public function getFlags() {
+        return $this->flags;
+    }
 
 
     /**
